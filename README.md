@@ -1,24 +1,27 @@
-# README
+# Calendar
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Name to be determined — what if we could add a URL to a calendar event for RSVPing?
 
-Things you may want to cover:
+## Running in development
 
-* Ruby version
+Use [Docker](https://www.docker.com/) to run the application in development.
 
-* System dependencies
+Once Docker is installed, run:
 
-* Configuration
+```bash
+# Build the docker images
+docker-compose build
 
-* Database creation
+# Create the databases
+docker-compose run web rake db:create
 
-* Database initialization
+# Run migrations
+docker-compose run web rake db:migrate
 
-* How to run the test suite
+# Boot the application
+docker-compose up
+```
 
-* Services (job queues, cache servers, search engines, etc.)
+Then, the application is available at http://localhost:3000/.
 
-* Deployment instructions
-
-* ...
+Use <kbd>Control</kbd> + <kbd>C</kbd> to shutdown the app.
