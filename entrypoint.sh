@@ -8,8 +8,8 @@ if [[ $RAILS_ENV != 'production' ]]; then
   # Make sure a database connection can be made
   printf "Waiting for PostgreSQL ... "
 
-  while ! psql $DATABASE_URL -c '\q'; do
-    sleep 0.1
+  until psql $DATABASE_URL -c '\q' > /dev/null 2>&1; do
+     sleep 0.1
   done
 
   echo "done"
