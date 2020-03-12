@@ -1,12 +1,75 @@
 version: 2.1
 
+references:
+  ruby_node_browsers: &ruby_node_browsers
+    image: circleci/ruby:2.5.7-node-browsers
+    environment:
+      BUNDLE_JOBS: 3
+      BUNDLE_RETRY: 3
+      BUNDLE_PATH: vendor/bundle
+      RAILS_ENV: test
+
+  postgres: &postgres
+    image: circleci/postgres:9.5-alpine
+
+commands:
+  install_dependencies:
+    description: Install dependencies
+    steps:
+      - restore_cache:
+          keys:
+            - bundle-cache-v1-{{ checksum "Gemfile.lock" }}
+            - bundle-cache-v1-
+      - run:
+          name: Bundle install
+          command: bundle check || bundle install
+      - save_cache:
+          key: bundle-cache-v1-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+
+      - restore_cache:
+          keys:
+            - yarn-cache-v1-{{ checksum "yarn.lock" }}
+            - yarn-cache-v1-
+      - run:
+          name: Yarn install
+          command: yarn install --cache-folder ~/.cache/yarn
+      - save_cache:
+          key: yarn-cache-v1-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+
 jobs:
   build:
     docker:
-      - image: cimg/base:2020.01
+      - *ruby_node_browsers
     steps:
       - checkout
-      - setup_remote_docker
+      - install_dependencies
+
+  test:
+    docker:
+      - *ruby_node_browsers
+      - *postgres
+    steps:
+      - checkout
+      - install_dependencies
+      - run:
+          name: Wait for database to boot
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run:
+          name: Setup database
+          command: bundle exec rails db:setup
       - run:
           name: Run tests
-          command: docker-compose run web bundle exec rails test
+          command: bundle exec rails test
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
