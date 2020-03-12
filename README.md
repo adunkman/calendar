@@ -25,3 +25,11 @@ docker-compose up
 Then, the application is available at http://localhost:3000/.
 
 Use <kbd>Control</kbd> + <kbd>C</kbd> to shutdown the app.
+
+## Running the tests
+
+Run tests using docker-compose:
+
+```bash
+docker-compose run web bundle exec rails test
+```
